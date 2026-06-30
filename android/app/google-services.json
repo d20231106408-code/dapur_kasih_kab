@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "79044649135",
+    "project_id": "dapurkasih",
+    "storage_bucket": "dapurkasih.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:79044649135:android:edcb0336ae533df7e9745a",
+        "android_client_info": {
+          "package_name": "com.example.dapur"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhBmX3bzWawyfNsI9BqoULVdO8z1DtmxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
