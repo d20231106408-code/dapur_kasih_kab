@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dashboard_page.dart'; 
+import 'screens/dashboard.dart';
 import 'signup_page.dart';    
 import 'forgot_password_page.dart'; 
 
@@ -47,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
+          MaterialPageRoute(builder: (context) => DashboardPage()),
         );
       }
     } on FirebaseAuthException catch (e) {
