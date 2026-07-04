@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_page.dart';
-import 'dashboard_page.dart';
+import 'screens/dashboard.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -78,7 +78,7 @@ class _SignupPageState extends State<SignupPage> {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
+          MaterialPageRoute(builder: (context) => DashboardPage()),
           (route) => false, // This prevents the user from clicking 'back' to the signup page
         );
       }
