@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/dashboard.dart';
-import 'signup_page.dart';    
-import 'forgot_password_page.dart'; 
+import 'signup_page.dart';
+import 'forgot_password_page.dart';
+import 'screens/admin_login.dart'; // ✅ import admin login page
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,18 +13,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controllers to read the text typed into the fields
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
-  // Loading state to show a spinner while Firebase checks credentials
   bool _isLoading = false;
 
-  // ---------------------------------------------------------
-  // FIREBASE LOGIN LOGIC
-  // ---------------------------------------------------------
   Future<void> _loginUser() async {
-    // 1. Check if fields are empty
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields.')),
@@ -31,19 +25,14 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // 2. Start loading
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // 3. Attempt to sign in with Firebase
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // 4. If successful, navigate to Dashboard and remove Login from history
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -51,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } on FirebaseAuthException catch (e) {
-      // 5. Handle errors (e.g., wrong password, user not found)
       String errorMessage = 'An error occurred. Please try again.';
       if (e.code == 'user-not-found') {
         errorMessage = 'No user found for that email.';
@@ -67,16 +55,10 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } finally {
-      // 6. Stop loading whether it succeeded or failed
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // Always dispose of controllers when the page is destroyed to save memory
   @override
   void dispose() {
     _emailController.dispose();
@@ -88,101 +70,64 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // SingleChildScrollView prevents the keyboard from pushing UI off-screen
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // ---------------------------------------------------------
-            // TOP SECTION: IMAGE AND CURVED OVERLAY
-            // ---------------------------------------------------------
+            // ✅ Top section (image + curve)
             Stack(
               children: [
-                // 1. The Background Image
                 SizedBox(
                   height: 350,
                   width: double.infinity,
                   child: Image.asset(
-                    'assets/dapur.jpg', // Replace with your actual image path
+                    'assets/dapur.jpg',
                     fit: BoxFit.cover,
                   ),
                 ),
-                
-                // 2. The Back Arrow Button
                 SafeArea(
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
-
-                // 3. The White Curved Top overlay
-                // Positioned pushes this to the very bottom of the 350px Stack
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Container(
-                    height: 60, // Height of the curve
+                    height: 60,
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(80), // Creates the curve from the image
-                      ),
+                      borderRadius: BorderRadius.only(topRight: Radius.circular(80)),
                     ),
                   ),
                 ),
               ],
             ),
 
-            // ---------------------------------------------------------
-            // BOTTOM SECTION: FORM AND BUTTONS
-            // ---------------------------------------------------------
+            // ✅ Bottom section (form + buttons)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
                   const Center(
                     child: Text(
                       'Login',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.black87),
                     ),
                   ),
                   const SizedBox(height: 5),
-                  
-                  // Subtitle
                   const Center(
                     child: Text(
                       'Sign in to continue.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500),
                     ),
                   ),
                   const SizedBox(height: 40),
 
-                  // Email Label
-                  const Text(
-                    'EMAIL', // Changed from NAME for Firebase compatibility
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
+                  const Text('EMAIL', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
                   const SizedBox(height: 8),
-
-                  // Email TextField
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -192,28 +137,17 @@ class _LoginPageState extends State<LoginPage> {
                       hintText: 'jiara@example.com',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none, // Removes the default underline
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
                   const SizedBox(height: 25),
 
-                  // Password Label
-                  const Text(
-                    'PASSWORD',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
+                  const Text('PASSWORD', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
                   const SizedBox(height: 8),
-
-                  // Password TextField
                   TextField(
                     controller: _passwordController,
-                    obscureText: true, // Hides the password with dots
+                    obscureText: true,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.grey.shade300,
@@ -226,33 +160,23 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 35),
 
-                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF7A22), // Matching Orange
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        backgroundColor: const Color(0xFFFF7A22),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: _isLoading ? null : _loginUser, // Disables if loading
+                      onPressed: _isLoading ? null : _loginUser,
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'Log in',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          : const Text('Log in', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(height: 30),
 
-                  // Links (Forgot Password & Signup)
+                  // ✅ Links + Admin Login
                   Center(
                     child: Column(
                       children: [
@@ -263,13 +187,7 @@ class _LoginPageState extends State<LoginPage> {
                               MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
                             );
                           },
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          child: const Text('Forgot Password?', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500)),
                         ),
                         const SizedBox(height: 15),
                         GestureDetector(
@@ -279,18 +197,27 @@ class _LoginPageState extends State<LoginPage> {
                               MaterialPageRoute(builder: (context) => const SignupPage()),
                             );
                           },
+                          child: const Text('Signup !', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500)),
+                        ),
+                        const SizedBox(height: 25),
+
+                        // ✅ Admin Login Button (kecil di bawah)
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => AdminLoginPage()), // ❌ buang const
+                            );
+                          },
                           child: const Text(
-                            'Signup !',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            "Admin Login",
+                            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40), // Bottom padding
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

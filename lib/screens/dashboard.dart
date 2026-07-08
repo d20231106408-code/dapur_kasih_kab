@@ -60,7 +60,7 @@ class _DashboardPageState extends State<DashboardPage> {
     } else if (index == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => BookingHistoryPage()),
+        MaterialPageRoute(builder: (context) => BookingHistoryScreen()),
       );
     } else if (index == 2) {
       Navigator.push(

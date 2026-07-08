@@ -1,9 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../styles.dart';
 import '../widgets/booking_form.dart';
 import 'booking_history.dart';
+
+class Booking {
+  final String id;
+  String date;
+  String time;
+  String purpose;
+  String members;
+  int totalUsers;
+  String status; // pending, approved, rejected
+
+  Booking({
+    required this.id,
+    required this.date,
+    required this.time,
+    required this.purpose,
+    required this.members,
+    required this.totalUsers,
+    required this.status,
+  });
+}
 
 class BookingPage extends StatelessWidget {
   final Map<String, String> slot;
@@ -17,14 +35,11 @@ class BookingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final FirebaseFirestore _db = FirebaseFirestore.instance;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text("DapurKasih", style: AppTextStyles.heading),
@@ -33,17 +48,16 @@ class BookingPage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: AppSpacing.screenPadding,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center, // ✅ center headers
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Header texts
             Text("CONFIRM YOUR SESSION", style: AppTextStyles.heading),
             Text("BOOK THE DATE NOW!", style: AppTextStyles.body),
             AppSpacing.mediumGap,
 
-            // Booking details card centered
+            // Booking details card
             Center(
               child: Container(
-                width: 300, // fixed width for neat box
+                width: 300,
                 child: Card(
                   color: Colors.orange.shade50,
                   elevation: 3,
@@ -70,34 +84,31 @@ class BookingPage extends StatelessWidget {
 
             // Booking form
             BookingForm(
-              onSubmit: (purpose, members, totalUsers) async {
-                try {
-                  await _db.collection("bookings").add({
-                    "slotId": slot["slotId"],
-                    "time": slot["time"],
-                    "date": date.toIso8601String().split("T")[0],
-                    "purpose": purpose,
-                    "members": members,
-                    "totalUsers": totalUsers,
-                    "userId": _auth.currentUser?.uid,
-                    "createdAt": FieldValue.serverTimestamp(),
-                  });
+              onSubmit: (purpose, members, totalUsers) {
+                // buat objek Booking baru
+                final newBooking = Booking(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  date: date.toIso8601String().split("T")[0],
+                  time: slot["time"] ?? "",
+                  purpose: purpose,
+                  members: members,
+                  totalUsers: totalUsers,
+                  status: "pending",
+                );
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Booking saved successfully!")),
-                  );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Booking saved successfully!")),
+                );
 
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BookingHistoryPage(),
+                // pass booking baru ke BookingHistoryScreen
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookingHistoryScreen(
+                      initialBookings: [newBooking],
                     ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error saving booking: $e")),
-                  );
-                }
+                  ),
+                );
               },
             ),
           ],
