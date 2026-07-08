@@ -1,98 +1,188 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart'; 
+
+import 'login_page.dart';
+import 'styles.dart';
 
 // ---------------------------------------------------------
-// WELCOME PAGE 
+// WELCOME PAGE — premium onboarding screen
+// Cream background, brand header, rounded hero image card and
+// a navy pill CTA, matching the approved UI reference.
 // ---------------------------------------------------------
-class WelcomePage extends StatelessWidget {
+class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
+
+  @override
+  State<WelcomePage> createState() => _WelcomePageState();
+}
+
+class _WelcomePageState extends State<WelcomePage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Stack lets us place widgets layer by layer on top of each other
-      body: Stack(
-        children: [
-          // LAYER 1: Background Image
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/dapur.jpg'),
-                fit: BoxFit.cover, // Ensures the image stretches to fill the screen
-              ),
-            ),
-          ),
-
-          // LAYER 2: Dark Overlay
-          // Images can sometimes be too bright, making white text hard to read.
-          // This adds a semi-transparent black tint over the image.
-          Container(
-            color: Colors.black.withOpacity(0.35),
-          ),
-
-          // LAYER 3: Foreground (Text and Button)
-          // SafeArea ensures your UI doesn't hide under the phone's notch or status bar
-          SafeArea(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fade,
+          child: SlideTransition(
+            position: _slide,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0), // Side margins
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Aligns text to the left
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Spacer acts like an invisible spring, pushing the text down
-                  const Spacer(flex: 3),
+                  const SizedBox(height: 20),
 
-                  // --- Main Title ---
+                  // --- Brand header ---
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.primary,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          boxShadow: AppShadows.button,
+                        ),
+                        child: const Icon(
+                          Icons.restaurant_menu,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'DapurKasih',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Kolej Aminuddin Baki (KAB)',
+                            style: AppTextStyles.caption,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const Spacer(flex: 2),
+
+                  // --- Headline ---
                   const Text(
-                    'Welcome to\nDapurKasih',
+                    'Welcome to',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 44,
-                      fontWeight: FontWeight.bold,
-                      height: 1.05, // Controls the space between the two lines
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      height: 1.1,
+                    ),
+                  ),
+                  ShaderMask(
+                    shaderCallback: (bounds) =>
+                        AppGradients.primary.createShader(bounds),
+                    child: const Text(
+                      'DapurKasih',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Row(
+                    children: [
+                      Text(
+                        "Let's Get Started ",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      Text('✨', style: TextStyle(fontSize: 18)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // --- Hero image card ---
+                  Expanded(
+                    flex: 9,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppRadius.xl),
+                        boxShadow: AppShadows.card,
+                        image: const DecorationImage(
+                          image: AssetImage('assets/dapur.jpg'),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      // Subtle gradient at the bottom of the photo for depth
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppRadius.xl),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              AppColors.navy.withValues(alpha: 0.35),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 20), // Spacing between title and subtitle
+                  const Spacer(flex: 1),
 
-                  // --- Subtitle ---
-                  // RichText allows us to combine multiple text styles in one line
-                  RichText(
-                    text: const TextSpan(
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
-                      children: [
-                        TextSpan(
-                          text: "Kolej Aminuddin Baki (KAB)\n",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        // FIX: Removed the 'child:' label here
-                        TextSpan(
-                          text: "Let's Get ",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        TextSpan(
-                          text: "Started !",
-                          style: TextStyle(color: Color(0xFFFF7A22)), // Custom Orange
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // This Spacer pushes the button down to the bottom area
-                  const Spacer(flex: 4),
-
-                  // --- Action Button ---
+                  // --- CTA ---
                   SizedBox(
-                    width: double.infinity, // Makes the button stretch the full width
-                    height: 55, // Height of the button
+                    width: double.infinity,
+                    height: 58,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF7A22), // Orange color
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12), // Rounded corners
+                          borderRadius: BorderRadius.circular(30),
                         ),
                       ),
                       onPressed: () {
-                        // Navigation Logic: Go to the Login Page
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -100,24 +190,29 @@ class WelcomePage extends StatelessWidget {
                           ),
                         );
                       },
-                      // FIX: Adjusted grammar to "Get Started"
-                      child: const Text(
-                        "Get Started",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Let's Get Started",
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Icon(Icons.arrow_forward_rounded, size: 20),
+                        ],
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 40), // Padding at the very bottom of the screen
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

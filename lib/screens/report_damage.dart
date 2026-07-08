@@ -3,7 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../styles.dart';
+import '../utils/slots.dart';
+import '../widgets/gradient_button.dart';
 import 'dashboard.dart';
+import 'damage_history.dart';
+import 'report_success.dart';
 
 class ReportDamagePage extends StatefulWidget {
   const ReportDamagePage({super.key});
@@ -31,16 +35,8 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
 
   bool _isLoading = false;
 
-  final List<Map<String, String>> slots = List.generate(15, (index) {
-    final startHour = 8 + index;
-    final endHour = startHour + 1;
-
-    return {
-      "slotId": "$startHour",
-      "time":
-          "${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00",
-    };
-  });
+  // Kitchen slots (8 AM - 11 PM) shared with the dashboard.
+  final List<Map<String, String>> slots = kitchenSlots;
 
   String? _selectedSlot;
 
@@ -59,6 +55,9 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
     super.dispose();
   }
 
+  // ---------------------------------------------------------
+  // SUBMIT LOGIC (unchanged) — now ends on the success screen
+  // ---------------------------------------------------------
   Future<void> _submitReport() async {
     if (_selectedItem == null ||
         _descriptionController.text.trim().isEmpty ||
@@ -86,13 +85,9 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Report submitted successfully.")),
-      );
-
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => DashboardPage()),
+        MaterialPageRoute(builder: (context) => const ReportSuccessPage()),
       );
     } catch (e) {
       ScaffoldMessenger.of(
@@ -107,25 +102,36 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
     }
   }
 
-  Widget _urgencyChip(String label) {
+  // Colored urgency selector chip (Low / Medium / High)
+  Widget _urgencyChip(String label, Color color, Color softColor) {
     final bool selected = _urgency == label;
 
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: ChoiceChip(
-          label: Center(child: Text(label)),
-          selected: selected,
-          selectedColor: AppColors.primary,
-          labelStyle: TextStyle(
-            color: selected ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.w600,
+        child: GestureDetector(
+          onTap: () => setState(() => _urgency = label),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: selected ? color : softColor,
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: selected ? color : Colors.transparent,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: selected ? Colors.white : color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
           ),
-          onSelected: (_) {
-            setState(() {
-              _urgency = label;
-            });
-          },
         ),
       ),
     );
@@ -136,22 +142,32 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        title: const Text("Report Damage", style: AppTextStyles.heading),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("DapurKasih", style: AppTextStyles.heading),
-        backgroundColor: AppColors.primary,
+        actions: [
+          IconButton(
+            tooltip: 'My Reports',
+            icon: const Icon(Icons.history_rounded,
+                color: AppColors.textPrimary),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DamageHistoryPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: AppSpacing.screenPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Text("REPORT DAMAGE", style: AppTextStyles.heading)),
-
-            AppSpacing.smallGap,
-
             Center(
               child: Text(
                 "Help us keep the kitchen safe and functional for everyone.",
@@ -162,16 +178,14 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
 
             AppSpacing.mediumGap,
 
-            Text("Time", style: AppTextStyles.subheading),
-
+            const Text("Time", style: AppTextStyles.subheading),
             AppSpacing.smallGap,
-
             DropdownButtonFormField<String>(
               initialValue: _selectedSlot,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              decoration: AppDecorations.input(
+                prefixIcon: const Icon(Icons.schedule_rounded,
+                    color: AppColors.textSecondary, size: 20),
               ),
               items: slots.map((slot) {
                 return DropdownMenuItem<String>(
@@ -188,17 +202,15 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
 
             AppSpacing.mediumGap,
 
-            Text("Affected Item / Area", style: AppTextStyles.subheading),
-
+            const Text("Affected Item / Area", style: AppTextStyles.subheading),
             AppSpacing.smallGap,
-
             DropdownButtonFormField<String>(
               initialValue: _selectedItem,
-              decoration: InputDecoration(
-                hintText: "-- Select Item --",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              decoration: AppDecorations.input(
+                hint: "-- Select Item --",
+                prefixIcon: const Icon(Icons.kitchen_rounded,
+                    color: AppColors.textSecondary, size: 20),
               ),
               items: _items.map((item) {
                 return DropdownMenuItem<String>(value: item, child: Text(item));
@@ -212,61 +224,58 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
 
             AppSpacing.mediumGap,
 
-            Text("Detail Description", style: AppTextStyles.subheading),
-
+            const Text("Detail Description", style: AppTextStyles.subheading),
             AppSpacing.smallGap,
-
             TextField(
               controller: _descriptionController,
               maxLines: 5,
-              decoration: InputDecoration(
-                hintText:
+              decoration: AppDecorations.input(
+                hint:
                     "Please provide details (e.g. Stove #3 burner is not igniting)...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
               ),
             ),
 
             AppSpacing.mediumGap,
 
-            Text("Urgency Level", style: AppTextStyles.subheading),
-
+            const Text("Urgency Level", style: AppTextStyles.subheading),
             AppSpacing.smallGap,
-
             Row(
               children: [
-                _urgencyChip("Low"),
-                _urgencyChip("Medium"),
-                _urgencyChip("High"),
+                _urgencyChip("Low", AppColors.success, AppColors.successSoft),
+                _urgencyChip(
+                    "Medium", AppColors.warning, AppColors.warningSoft),
+                _urgencyChip("High", AppColors.error, AppColors.errorSoft),
               ],
             ),
 
             AppSpacing.mediumGap,
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: AppButtonStyles.primaryButton,
-                onPressed: _isLoading ? null : _submitReport,
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text("SUBMIT", style: AppTextStyles.button),
-              ),
+
+            GradientButton(
+              label: "Submit",
+              icon: Icons.send_rounded,
+              isLoading: _isLoading,
+              onPressed: _isLoading ? null : _submitReport,
             ),
 
             AppSpacing.smallGap,
 
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton(
+              height: 52,
+              child: OutlinedButton.icon(
+                style: AppButtonStyles.outlinedButton,
+                icon: const Icon(Icons.home_outlined, size: 19),
+                label: const Text(
+                  "Return Home",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => DashboardPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const DashboardPage()),
                   );
                 },
-                child: const Text("Return Home"),
               ),
             ),
           ],

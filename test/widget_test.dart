@@ -1,30 +1,24 @@
-// This is a basic Flutter widget test.
+// Basic smoke test for the DapurKasih app.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// The full app requires a live Firebase connection, so this test
+// exercises the WelcomePage (pure UI, no Firebase) to verify the
+// widget tree builds and the entry action is present.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:dapur/main.dart';
+import 'package:dapur/welcome_page.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Welcome page shows brand and Get Started button',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: WelcomePage()));
+    await tester.pump(const Duration(seconds: 1)); // let intro animation run
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('DapurKasih'), findsWidgets);
+    expect(
+      find.widgetWithText(ElevatedButton, "Let's Get Started"),
+      findsOneWidget,
+    );
   });
 }
