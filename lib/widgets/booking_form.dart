@@ -4,7 +4,7 @@ import '../styles.dart';
 class BookingForm extends StatefulWidget {
   final void Function(String purpose, String members, int totalUsers)? onSubmit;
 
-  const BookingForm({Key? key, this.onSubmit}) : super(key: key);
+  const BookingForm({super.key, this.onSubmit});
 
   @override
   _BookingFormState createState() => _BookingFormState();
@@ -56,7 +56,11 @@ class _BookingFormState extends State<BookingForm> {
               }
 
               // Split names by comma
-              final names = value.split(",").map((n) => n.trim()).where((n) => n.isNotEmpty).toList();
+              final names = value
+                  .split(",")
+                  .map((n) => n.trim())
+                  .where((n) => n.isNotEmpty)
+                  .toList();
               final totalUsers = int.tryParse(_totalUsersController.text);
 
               if (totalUsers != null && names.length != totalUsers) {

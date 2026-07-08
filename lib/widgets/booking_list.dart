@@ -5,11 +5,7 @@ class BookingList extends StatelessWidget {
   final List<Map<String, String>> slots;
   final Function(Map<String, String>) onBook;
 
-  const BookingList({
-    Key? key,
-    required this.slots,
-    required this.onBook,
-  }) : super(key: key);
+  const BookingList({super.key, required this.slots, required this.onBook});
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +18,7 @@ class BookingList extends StatelessWidget {
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 6),
           child: ListTile(
-            title: Text(
-              slot["time"] ?? "",
-              style: AppTextStyles.subheading,
-            ),
+            title: Text(slot["time"] ?? "", style: AppTextStyles.subheading),
             subtitle: Text(
               status,
               style: TextStyle(
@@ -39,9 +32,7 @@ class BookingList extends StatelessWidget {
                     ? Colors.grey
                     : AppColors.primary,
               ),
-              onPressed: status == "Booked"
-                  ? null
-                  : () => onBook(slot),
+              onPressed: status == "Booked" ? null : () => onBook(slot),
               child: Text(
                 status == "Booked" ? "Unavailable" : "Book",
                 style: AppTextStyles.button,

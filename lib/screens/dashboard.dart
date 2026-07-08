@@ -11,7 +11,7 @@ import 'profile.dart';
 import 'booking_history.dart';
 
 class DashboardPage extends StatefulWidget {
-  DashboardPage({Key? key}) : super(key: key);
+  const DashboardPage({super.key});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -28,7 +28,8 @@ class _DashboardPageState extends State<DashboardPage> {
     return {
       "slotId": "$startHour", // unique ID for Firestore
       "title": "Slot ${index + 1}",
-      "time": "${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00",
+      "time":
+          "${startHour.toString().padLeft(2, '0')}:00 - ${endHour.toString().padLeft(2, '0')}:00",
     };
   });
 
@@ -172,8 +173,10 @@ class _DashboardPageState extends State<DashboardPage> {
               child: StreamBuilder<QuerySnapshot>(
                 stream: _db
                     .collection("bookings")
-                    .where("date",
-                        isEqualTo: selectedDate.toIso8601String().split("T")[0])
+                    .where(
+                      "date",
+                      isEqualTo: selectedDate.toIso8601String().split("T")[0],
+                    )
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
@@ -181,8 +184,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   }
 
                   final bookedSlots = snapshot.data!.docs
-                      .map((doc) =>
-                          (doc.data() as Map<String, dynamic>)["slotId"])
+                      .map(
+                        (doc) => (doc.data() as Map<String, dynamic>)["slotId"],
+                      )
                       .toSet();
 
                   final updatedSlots = slots.map((slot) {
@@ -201,15 +205,15 @@ class _DashboardPageState extends State<DashboardPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => BookingPage(
-                              slot: slot,
-                              date: selectedDate,
-                            ),
+                            builder: (context) =>
+                                BookingPage(slot: slot, date: selectedDate),
                           ),
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("This slot is already booked")),
+                          SnackBar(
+                            content: Text("This slot is already booked"),
+                          ),
                         );
                       }
                     },

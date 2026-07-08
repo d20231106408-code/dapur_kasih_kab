@@ -9,16 +9,12 @@ class BookingPage extends StatelessWidget {
   final Map<String, String> slot;
   final DateTime date;
 
-  const BookingPage({
-    Key? key,
-    required this.slot,
-    required this.date,
-  }) : super(key: key);
+  const BookingPage({super.key, required this.slot, required this.date});
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final FirebaseFirestore _db = FirebaseFirestore.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final FirebaseFirestore db = FirebaseFirestore.instance;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -42,7 +38,7 @@ class BookingPage extends StatelessWidget {
 
             // Booking details card centered
             Center(
-              child: Container(
+              child: SizedBox(
                 width: 300, // fixed width for neat box
                 child: Card(
                   color: Colors.orange.shade50,
@@ -55,11 +51,15 @@ class BookingPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Date: ${date.toLocal().toString().split(' ')[0]}",
-                            style: AppTextStyles.subheading),
+                        Text(
+                          "Date: ${date.toLocal().toString().split(' ')[0]}",
+                          style: AppTextStyles.subheading,
+                        ),
                         AppSpacing.smallGap,
-                        Text("Time: ${slot["time"]}",
-                            style: AppTextStyles.subheading),
+                        Text(
+                          "Time: ${slot["time"]}",
+                          style: AppTextStyles.subheading,
+                        ),
                       ],
                     ),
                   ),
@@ -72,14 +72,14 @@ class BookingPage extends StatelessWidget {
             BookingForm(
               onSubmit: (purpose, members, totalUsers) async {
                 try {
-                  await _db.collection("bookings").add({
+                  await db.collection("bookings").add({
                     "slotId": slot["slotId"],
                     "time": slot["time"],
                     "date": date.toIso8601String().split("T")[0],
                     "purpose": purpose,
                     "members": members,
                     "totalUsers": totalUsers,
-                    "userId": _auth.currentUser?.uid,
+                    "userId": auth.currentUser?.uid,
                     "createdAt": FieldValue.serverTimestamp(),
                   });
 
