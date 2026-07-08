@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
 import 'screens/dashboard.dart';
 
@@ -69,10 +70,24 @@ class _SignupPageState extends State<SignupPage> {
       );
 
       // 4. Update the user's profile with their Name
-      await userCredential.user?.updateDisplayName(_nameController.text.trim());
+      // Update nama dalam Firebase Authentication
+await userCredential.user?.updateDisplayName(
+  _nameController.text.trim(),
+);
 
-      // (Optional Note: To save the Date of Birth, you would typically use 
-      // Firebase Firestore here to save a document linked to userCredential.user.uid)
+// Simpan maklumat pengguna ke Firestore
+await FirebaseFirestore.instance
+    .collection("users")
+    .doc(userCredential.user!.uid)
+    .set({
+  "name": _nameController.text.trim(),
+  "email": _emailController.text.trim(),
+  "phone": "",
+  "address": "",
+  "dob": _dobController.text.trim(),
+  "imageUrl": "",
+  "createdAt": FieldValue.serverTimestamp(),
+});
 
       // 5. If successful, navigate to Dashboard and clear navigation history
       if (mounted) {

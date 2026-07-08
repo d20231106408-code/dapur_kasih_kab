@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../styles.dart';
 
 class BookingHistoryPage extends StatelessWidget {
+  // ignore: prefer_const_constructors_in_immutables
   BookingHistoryPage({Key? key}) : super(key: key);
 
   @override
