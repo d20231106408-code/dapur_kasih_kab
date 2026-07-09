@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../styles.dart';
 import '../utils/slots.dart';
 import '../widgets/booking_form.dart';
 import 'booking_history.dart';
+
+class Booking {
+  final String id;
+  String date;
+  String time;
+  String purpose;
+  String members;
+  int totalUsers;
+  String status; // pending, approved, rejected
+
+  Booking({
+    required this.id,
+    required this.date,
+    required this.time,
+    required this.purpose,
+    required this.members,
+    required this.totalUsers,
+    required this.status,
+  });
+}
 
 class BookingPage extends StatelessWidget {
   final Map<String, String> slot;
