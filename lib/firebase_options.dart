@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'dapurkasih',
     storageBucket: 'dapurkasih.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDk1Zz8PHPNjMicGNUPMyVsTgXKaEDyqgo',
     appId: '1:79044649135:ios:691ac48f0fea1ed8e9745a',
@@ -65,7 +64,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'dapurkasih.firebasestorage.app',
     iosBundleId: 'com.example.dapur',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDk1Zz8PHPNjMicGNUPMyVsTgXKaEDyqgo',
     appId: '1:79044649135:ios:691ac48f0fea1ed8e9745a',
