@@ -40,6 +40,9 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
 
   String? _selectedSlot;
 
+  // Date the damage was noticed (report requires DateReport).
+  DateTime _selectedDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +56,28 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
   void dispose() {
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      // Reports are about things already noticed — allow up to 30 days
+      // back, but never a future date.
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  String _monthName(int month) {
+    const names = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return names[month - 1];
   }
 
   // ---------------------------------------------------------
@@ -75,6 +100,7 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
     try {
       await _db.collection("damage_reports").add({
         "userId": _auth.currentUser?.uid,
+        "date": _selectedDate.toIso8601String().split("T")[0],
         "slot": _selectedSlot,
         "item": _selectedItem,
         "description": _descriptionController.text.trim(),
@@ -173,6 +199,42 @@ class _ReportDamagePageState extends State<ReportDamagePage> {
                 "Help us keep the kitchen safe and functional for everyone.",
                 style: AppTextStyles.body,
                 textAlign: TextAlign.center,
+              ),
+            ),
+
+            AppSpacing.mediumGap,
+
+            const Text("Date", style: AppTextStyles.subheading),
+            AppSpacing.smallGap,
+            GestureDetector(
+              onTap: _pickDate,
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.inputFill,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.event_rounded,
+                        color: AppColors.textSecondary, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      "${_selectedDate.day.toString().padLeft(2, '0')} "
+                      "${_monthName(_selectedDate.month)} ${_selectedDate.year}",
+                      style: const TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.textSecondary),
+                  ],
+                ),
               ),
             ),
 

@@ -105,6 +105,13 @@ class AdminDamagePage extends StatelessWidget {
             final String status =
                 _normalizeStatus(report["status"] as String?);
             final String urgency = (report["urgency"] as String?) ?? "Low";
+            // Prefer the user-chosen report date; older reports fall
+            // back to the submission timestamp.
+            final Timestamp? createdAt = report["createdAt"] as Timestamp?;
+            final String dateText = (report["date"] as String?) ??
+                (createdAt != null
+                    ? createdAt.toDate().toLocal().toString().split(' ')[0]
+                    : "-");
 
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -166,6 +173,11 @@ class AdminDamagePage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
+                      const Icon(Icons.event_rounded,
+                          size: 14, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text("Date: $dateText", style: AppTextStyles.caption),
+                      const SizedBox(width: 12),
                       const Icon(Icons.schedule_rounded,
                           size: 14, color: AppColors.textSecondary),
                       const SizedBox(width: 4),

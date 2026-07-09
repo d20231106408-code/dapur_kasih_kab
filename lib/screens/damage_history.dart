@@ -105,10 +105,13 @@ class DamageHistoryPage extends StatelessWidget {
               final report = docs[index].data() as Map<String, dynamic>;
               final String status = (report["status"] as String?) ?? "Pending";
               final String urgency = (report["urgency"] as String?) ?? "Low";
+              // Prefer the user-chosen report date; older reports fall
+              // back to the submission timestamp.
               final Timestamp? createdAt = report["createdAt"] as Timestamp?;
-              final String dateText = createdAt != null
-                  ? createdAt.toDate().toLocal().toString().split(' ')[0]
-                  : "-";
+              final String dateText = (report["date"] as String?) ??
+                  (createdAt != null
+                      ? createdAt.toDate().toLocal().toString().split(' ')[0]
+                      : "-");
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
