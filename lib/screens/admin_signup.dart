@@ -1,7 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import '../styles.dart';
 import 'admin_dashboard.dart';
+
+/// Only emails ending with this domain may register as admin
+/// (staff pejabat accounts). Change it to the college staff domain,
+/// or set it to an empty string to disable the check while testing.
+const String kAdminEmailDomain = "@company.com";
 
 class AdminSignupPage extends StatefulWidget {
   const AdminSignupPage({super.key});
@@ -11,24 +18,43 @@ class AdminSignupPage extends StatefulWidget {
 }
 
 class _AdminSignupPageState extends State<AdminSignupPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _staffIdController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _staffIdController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // ---------------------------------------------------------
+  // ADMIN SIGNUP LOGIC (unchanged) — email whitelist + role
+  // stored in Firestore.
+  // ---------------------------------------------------------
   Future<void> _signupAdmin() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      if (!mounted) return;
+    if (_nameController.text.isEmpty ||
+        _staffIdController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill in all fields.")),
       );
       return;
     }
 
-    // ✅ Check email domain
-    if (!_emailController.text.trim().endsWith("@company.com")) {
-      if (!mounted) return;
+    if (kAdminEmailDomain.isNotEmpty &&
+        !_emailController.text.trim().endsWith(kAdminEmailDomain)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Only company emails can register as admin.")),
+        const SnackBar(
+          content: Text("Only company emails can register as admin."),
+        ),
       );
       return;
     }
@@ -36,19 +62,27 @@ class _AdminSignupPageState extends State<AdminSignupPage> {
     setState(() => _isLoading = true);
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      await userCredential.user
+          ?.updateDisplayName(_nameController.text.trim());
 
       await FirebaseFirestore.instance
           .collection("users")
           .doc(userCredential.user!.uid)
           .set({
+        "name": _nameController.text.trim(),
+        "memberId": _staffIdController.text.trim().toUpperCase(),
         "email": _emailController.text.trim(),
+        "phone": "",
+        "address": "",
+        "imageUrl": "",
         "role": "admin",
-        "createdAt": DateTime.now().toIso8601String(),
+        "createdAt": FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;
@@ -66,97 +100,171 @@ class _AdminSignupPageState extends State<AdminSignupPage> {
     }
   }
 
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(text, style: AppTextStyles.label),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background image with orange overlay
-          SizedBox.expand(
-            child: Image.asset(
-              'assets/dapur.jpg',
-              fit: BoxFit.cover,
-              color: Colors.orange.withOpacity(0.6),
-              colorBlendMode: BlendMode.overlay,
-            ),
-          ),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(25),
-              margin: const EdgeInsets.symmetric(horizontal: 25),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+
+              // --- Shield badge ---
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: const BoxDecoration(
+                    gradient: AppGradients.navy,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.admin_panel_settings_outlined,
+                    color: Colors.white,
+                    size: 34,
+                  ),
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "Admin Signup",
+              const SizedBox(height: 24),
+
+              // --- Heading ---
+              const Center(
+                child: Text('Admin Signup', style: AppTextStyles.display),
+              ),
+              const SizedBox(height: 8),
+              const Center(
+                child: Text(
+                  'Registration is limited to approved staff emails.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.body,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // --- Full name ---
+              _buildLabel('FULL NAME'),
+              TextField(
+                controller: _nameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: AppDecorations.input(
+                  hint: 'Your full name',
+                  prefixIcon: const Icon(Icons.person_outline_rounded,
+                      color: AppColors.textSecondary, size: 20),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // --- Staff ID ---
+              _buildLabel('STAFF ID'),
+              TextField(
+                controller: _staffIdController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: AppDecorations.input(
+                  hint: '20220805',
+                  prefixIcon: const Icon(Icons.badge_outlined,
+                      color: AppColors.textSecondary, size: 20),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // --- Company email ---
+              _buildLabel('COMPANY EMAIL'),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: AppDecorations.input(
+                  hint: 'name$kAdminEmailDomain',
+                  prefixIcon: const Icon(Icons.mail_outline_rounded,
+                      color: AppColors.textSecondary, size: 20),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // --- Password ---
+              _buildLabel('PASSWORD'),
+              TextField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                decoration: AppDecorations.input(
+                  hint: '••••••••',
+                  prefixIcon: const Icon(Icons.lock_outline_rounded,
+                      color: AppColors.textSecondary, size: 20),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // --- Sign up (navy) ---
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.navy,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                  ),
+                  onPressed: _isLoading ? null : _signupAdmin,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text('Sign Up', style: AppTextStyles.button),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // --- Back to login ---
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Already Registered? Log in here.',
                     style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.5,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: "Company Email",
-                      filled: true,
-                      fillColor: Colors.grey.shade200,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      filled: true,
-                      fillColor: Colors.grey.shade200,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF7A22),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _isLoading ? null : _signupAdmin,
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("Sign Up", style: TextStyle(fontSize: 18)),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Text(
-                      "Already Registered? Log in here.",
-                      style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 32),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

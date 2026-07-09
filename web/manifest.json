@@ -1,11 +1,11 @@
 {
-    "name": "dapur",
-    "short_name": "dapur",
+    "name": "DapurKasih",
+    "short_name": "DapurKasih",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FAF6F0",
+    "theme_color": "#FF7A22",
+    "description": "DapurKasih - Kitchen booking system for Kolej Aminuddin Baki (KAB).",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
